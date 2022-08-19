@@ -1,8 +1,16 @@
 # gitUpdater
 Utilize github to update client programs
 
-## Install
+## Setup
+
+### Install
 `pip install git+https://github.com/Trogiken/gitUpdater.git`
+
+### Uninstall
+`pip uninstall gitUpdater`
+
+### Update
+`pip install --upgrade gitUpdater`
 
 ## Code Examples
 Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' scope
