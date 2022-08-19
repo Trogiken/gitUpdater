@@ -9,11 +9,12 @@ setup(
     author_email='noah.blaszak@gmail.com',
     license='GPL-3.0',
     packages=['updater'],
-    install_requires=[],
+    install_requires=['requests~=2.25.1', 'packaging~=21.3'],
+    python_requires=">=3.6",
 
     classifiers=[
         'Development Status :: 1 - Planning',
-        'Intended Audience :: Anyone',
+        'Intended Audience :: Developers',
         'License :: GPL License',
         'Programming Language :: Python :: 3.6+',
     ],
