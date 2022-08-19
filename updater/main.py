@@ -20,7 +20,8 @@ class _Repo:
             if resp.ok:
                 message = resp.json()
             else:
-                raise LookupError(f"Failed to get '{url}'. Reason: '{resp.reason}' (Is this a private repo?)")
+                raise LookupError(f"Failed to get '{url}'. Reason: '{resp.reason}' "
+                                  f"{'(Is this a private repo? Token Needed)' if resp.reason == 'Not Found' else None}")
         except requests.exceptions.ConnectionError:
             raise ConnectionError("Failed to make connection!")
 
