@@ -18,23 +18,17 @@ class _Repo:
         try:
             resp = self.session.get(url, headers=self.auth_header if self.token is not None else None)
             if resp.ok:
-                status = True
                 message = resp.json()
             else:
-                status = False
-                message = f"Failed to get '{self.repo_url}'. Reason: '{resp.reason}' (Is this a private repo?)"
+                raise LookupError(f"Failed to get '{url}'. Reason: '{resp.reason}' (Is this a private repo?)")
         except requests.exceptions.ConnectionError:
             raise ConnectionError("Failed to make connection!")
 
-        return {'ok': status, 'msg': message}
+        return message
 
     def get_versions(self) -> list:
         """List tag versions in ascending order"""
-        response = self.fetch(f'{self.repo_url}/tags')
-        if not response['ok']:
-            raise LookupError(response['msg'])
-        else:
-            tags_data = response['msg']
+        tags_data = self.fetch(f'{self.repo_url}/tags')
 
         versions = []
         for tag in tags_data:
