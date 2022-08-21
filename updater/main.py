@@ -1,6 +1,7 @@
 from packaging import version
-import tempfile
 import requests
+import shutil
+import pickle
 import os
 
 
@@ -39,7 +40,6 @@ class _Repo:
         versions = []
         for tag in tags:
             t_filter = tag.lower()
-            t_filter = t_filter if t_filter[0] != 'v' else t_filter[1:]  # remove 'v' from version if exists at index 0
             versions.append(t_filter)
         versions.sort(key=version.Version)  # ascend order
 
@@ -51,23 +51,14 @@ class _Repo:
         open(path, "wb").write(resp)
 
 
-class _Disk:
-    """Manage disk"""
-    def __init__(self, install_path, startup_path):
-        self.install = install_path
-        self.startup = startup_path
-
-    def backup(self):
-        """Backup all files in the install_path"""
-        pass
-
-
 class Update(_Repo):
     """
     Main package class
 
     Attributes
     ----------
+    current_version:
+        Current program version
     username:
         GitHub username
     repository:
@@ -75,36 +66,74 @@ class Update(_Repo):
     token (optional):
         GitHub personal access token
     """
-    def __init__(self, username: str, repository: str, token: str = None):
+    def __init__(self, current_version: str, username: str, repository: str, token: str = None):
         super().__init__(username, repository, token)
+        self.module_dir = os.path.dirname(__file__)
+        self._working_dir = os.path.join(self.module_dir, 'temp_update')
+        self._download_dir = os.path.join(self._working_dir, 'down')
 
-    def check(self, current: str) -> dict:
+        self.current_version = current_version
+        self.blacklist = []
+
+    def check(self) -> dict:
         """Check if current version is less than latest"""
         versions = self.get_versions()
         latest = versions[-1]
 
-        if version.parse(latest) > version.parse(current):
+        if version.parse(latest) > version.parse(self.current_version):
             status = True
         else:
             status = False
 
         return {'update': status, 'latest': latest, 'versions': versions}
 
-    def run(self, install_path: str, startup_path: str, close: bool = False, backup: bool = False) -> bool:
-        """Download latest version, clone/start payload, kill import program (optional)"""
+    def run(self, install_path: str, startup_path: str, force: bool = False):
+        """Download the latest version, clone/start payload, kill import program (optional)"""
+        if not force:
+            if not self.check()['update']:
+                raise UserWarning("Already Up To Date")
+
+        # Validate parameters
         for path in [install_path, startup_path]:
             if os.path.exists(path):
-                if not os.path.isdir(path):
-                    raise NotADirectoryError(f"'{path}' must be a directory")
+                if path == install_path:
+                    if not os.path.isdir(path):
+                        raise NotADirectoryError(f"'{path}' must be a directory")
+                else:
+                    if not os.path.isfile(path):
+                        raise FileNotFoundError(f"'{path}' must be a file'")
             else:
-                raise FileNotFoundError(f"'{path}' does not exist")
+                raise LookupError(f"'{path}' does not exist")
 
-        # file_location = (os.path.dirname(__file__))
-        # os.mkdir(file_location)
-        # self.download(os.path.join(file_location, 'download'), tag=)
+        # Validate blacklist paths
+        invalid_paths = []
+        for path in self.blacklist:
+            if not os.path.exists(path):
+                invalid_paths.append(path)
+        if invalid_paths:
+            raise LookupError(f"Invalid Blacklist Path(s): {invalid_paths}")
 
-        if close:
-            # close program
-            pass
-        else:
-            return True
+        # Create directory's
+        if os.path.exists(self._working_dir):
+            shutil.rmtree(self._working_dir)
+        if self._working_dir not in self.blacklist:
+            self.blacklist.append(self._working_dir)
+        os.mkdir(self._working_dir)
+        os.mkdir(self._download_dir)
+
+        # Download the latest zip tag
+        self.download(path=os.path.join(self._download_dir, 'data.zip'), tag=self.get_versions()[-1])
+
+        # Create environment file
+        data = {'install_path': install_path, 'startup_path': startup_path, 'blacklist': self.blacklist}
+        with open(os.path.join(self._working_dir, 'env.pkl'), 'wb') as file:
+            pickle.dump(data, file)
+
+        # Move and start payload
+        payload_origin = os.path.join(self.module_dir, 'payload.py')
+        payload_new = os.path.join(self._working_dir, 'payload.py')
+        shutil.copyfile(payload_origin, payload_new)
+        os.system(f"python {payload_new}")
+
+        # Close program with exit code 0
+        exit(0)
