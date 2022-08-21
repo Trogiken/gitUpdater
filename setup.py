@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='gitUpdater',
-    version='0.1.2',
+    version='0.1.3',
     description='Utilize github to update client programs',
     url='https://github.com/Trogiken/pyexample',
     author='Noah Blaszak',
