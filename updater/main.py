@@ -16,7 +16,7 @@ class _Repo:
         self.session = requests.Session()
         self.auth_header = {"Authorization": f"token {self.token}"}
 
-    def fetch(self, url) -> requests.models.Response:
+    def fetch(self, url: str) -> requests.models.Response:
         """Get and return requested api data"""
         try:
             resp = self.session.get(url, headers=self.auth_header if self.token is not None else None)
@@ -45,7 +45,8 @@ class _Repo:
 
         return versions
 
-    def download(self, path: str, tag: str):
+    def download(self, path: str, tag: str) -> None:
+        """Download tag ZipBall"""
         url = f'{self.repo_url}/zipball/refs/tags/{tag}'
         resp = self.fetch(url).content
         open(path, "wb").write(resp)
@@ -54,6 +55,23 @@ class _Repo:
 class Update(_Repo):
     """
     Main package class
+
+    ...
+
+    Methods
+    -------
+    check() -> bool:
+        Check if current version is less than the latest
+    run(install_path=str, startup_path=str, force=bool (optional)):
+        Download and install the latest version
+    fetch(url=str) -> requests.models.Response:
+        Get response url
+    get_tags() -> list:
+        Return all tag names
+    get_versions() -> list:
+        List versions in ascending order
+    download(path=str, tag=str) -> None:
+        Download ZipBall of (tag) and store to (path)
 
     Attributes
     ----------
@@ -76,7 +94,7 @@ class Update(_Repo):
         self.blacklist = []
 
     def check(self) -> dict:
-        """Check if current version is less than latest"""
+        """Check if current version is less than the latest"""
         versions = self.get_versions()
         latest = versions[-1]
 
@@ -87,8 +105,8 @@ class Update(_Repo):
 
         return {'update': status, 'latest': latest, 'versions': versions}
 
-    def run(self, install_path: str, startup_path: str, force: bool = False):
-        """Download the latest version, clone/start payload, kill import program (optional)"""
+    def run(self, install_path: str, startup_path: str, force: bool = False) -> None:
+        """Download the latest version and clone and start payload"""
         if not force:
             if not self.check()['update']:
                 raise UserWarning("Already Up To Date")
