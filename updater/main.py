@@ -91,7 +91,7 @@ class Update(_Repo):
         self._download_dir = os.path.join(self._working_dir, 'down')
 
         self.current_version = current_version
-        self.blacklist = []
+        self.whitelist = []
 
     def check(self) -> dict:
         """Check if current version is less than the latest"""
@@ -109,7 +109,7 @@ class Update(_Repo):
         """Download the latest version and clone and start payload"""
         if not force:
             if not self.check()['update']:
-                raise UserWarning("Already Up To Date")
+                raise UserWarning("Already Up To Date. (You can use 'force=True' to override this)")
 
         # Validate parameters
         for path in [install_path, startup_path]:
@@ -123,19 +123,26 @@ class Update(_Repo):
             else:
                 raise LookupError(f"'{path}' does not exist")
 
-        # Validate blacklist paths
+        # Validate and organize whitelist paths
         invalid_paths = []
-        for path in self.blacklist:
+        sorted_whitelist = {'files': [], 'dirs': []}
+        if self.module_dir not in self.whitelist:  # Add module directory to whitelist
+            self.whitelist.append(self.module_dir)
+        if install_path not in self.whitelist:  # Add install directory to whitelist
+            self.whitelist.append(install_path)
+        for path in self.whitelist:
             if not os.path.exists(path):
                 invalid_paths.append(path)
+            if os.path.isfile(path):
+                sorted_whitelist['files'].append(path)
+            if os.path.isdir(path):
+                sorted_whitelist['dirs'].append(path)
         if invalid_paths:
-            raise LookupError(f"Invalid Blacklist Path(s): {invalid_paths}")
+            raise LookupError(f"Invalid Whitelist Path(s): {invalid_paths}")
 
         # Create directory's
         if os.path.exists(self._working_dir):
             shutil.rmtree(self._working_dir)
-        if self._working_dir not in self.blacklist:
-            self.blacklist.append(self._working_dir)
         os.mkdir(self._working_dir)
         os.mkdir(self._download_dir)
 
@@ -143,15 +150,16 @@ class Update(_Repo):
         self.download(path=os.path.join(self._download_dir, 'data.zip'), tag=self.get_versions()[-1])
 
         # Create environment file
-        data = {'install_path': install_path, 'startup_path': startup_path, 'blacklist': self.blacklist}
-        with open(os.path.join(self._working_dir, 'env.pkl'), 'wb') as file:
+        data = {'working_directory': self._working_dir,
+                'install_path': install_path,
+                'startup_path': startup_path,
+                'whitelist': sorted_whitelist
+                }
+        with open(os.path.join(self.module_dir, 'env.pkl'), 'wb') as file:
             pickle.dump(data, file)
 
-        # Move and start payload
-        payload_origin = os.path.join(self.module_dir, 'payload.py')
-        payload_new = os.path.join(self._working_dir, 'payload.py')
-        shutil.copyfile(payload_origin, payload_new)
-        os.system(f"python {payload_new}")
+        # Start payload
+        os.system(f"python {os.path.join(self.module_dir, 'payload.py')}")
 
         # Close program with exit code 0
         exit(0)
