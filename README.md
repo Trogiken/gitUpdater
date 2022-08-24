@@ -3,6 +3,8 @@ Utilize github to update client programs
 
 ## Setup
 
+Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' scope
+
 ### Install
 `pip install git+https://github.com/Trogiken/gitUpdater.git`
 
@@ -12,25 +14,19 @@ Utilize github to update client programs
 ### Update
 `pip install --upgrade gitUpdater`
 
-## Code Examples
-Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' scope
-
-### Public
+## Functions
 ```
-from updater import Update
+import updater
 
-update = Update('user', 'my-public-repo')
-if update.check('1.0.0'):  # Current version
-    # update
-    pass
-```
+update = updater()  # 'current_version', 'username', 'repository', if the repo is private; 'token'
 
-### Private
-```
-from updater import Update
+# Main Functions
+update.check()
+update.run()
 
-update = Update('user', 'my-private-repo', 'mypersonalaccesstoken')
-if update.check('1.0.0'):  # Current version
-    # update
-    pass
+# Subclass Functions
+update.fetch(url)
+update.get_tags()
+update.get_versions()
+update.download(path, tag)
 ```
