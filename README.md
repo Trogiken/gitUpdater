@@ -52,5 +52,5 @@ update = updater(current_version='1.0-beta.1', username='Trogiken', repository='
 
 if update.check()['update']:
   print("Update is available. Installing Latest")
-  update.run()
+  update.run(install_path='path_to_my_local_repo', startup_path='path_to_my_local_repo/main.py')
 ```
