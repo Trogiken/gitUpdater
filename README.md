@@ -48,7 +48,7 @@ update.whitelist.remove("absolute_path")
 ```
 import updater
 
-update = updater(current_version='1.0-beta.1', username='Trogiken', 'DeMod-GTAV')
+update = updater(current_version='1.0-beta.1', username='Trogiken', repository='DeMod-GTAV')
 
 if update.check()['update']:
   print("Update is available. Installing Latest")
