@@ -124,17 +124,19 @@ class Update(_Repo):
                 raise LookupError(f"'{path}' does not exist")
 
         # Validate and organize whitelist paths
-        invalid_paths = []
         sorted_whitelist = {'files': [], 'dirs': []}
         for path in self.whitelist:
             if not os.path.exists(path):
-                invalid_paths.append(path)
+                raise FileNotFoundError(f"{path} does not not exist")
+            if install_path == path:
+                raise ValueError(f"Cannot whitelist the install path: '{path}'")
+            if not path.startswith(os.path.abspath(install_path)+os.sep):  # if not a sub path of install_path
+                raise ValueError(f"'{path}' is not a sub-path of '{install_path}'")
+
             if os.path.isfile(path):
                 sorted_whitelist['files'].append(path)
             if os.path.isdir(path):
                 sorted_whitelist['dirs'].append(path)
-        if invalid_paths:
-            raise LookupError(f"Invalid Whitelist Path(s): {invalid_paths}")
 
         # Create directory's
         if os.path.exists(self._working_dir):
@@ -158,5 +160,5 @@ class Update(_Repo):
         # Start payload
         os.system(f"python {os.path.join(self._module_dir, 'payload.py')}")
 
-        # Close program with exit code 0
+        # exit code 0
         exit(0)
