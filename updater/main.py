@@ -87,7 +87,7 @@ class Update(_Repo):
     def __init__(self, current_version: str, username: str, repository: str, token: str = None):
         super().__init__(username, repository, token)
         self.module_dir = os.path.dirname(__file__)
-        self._working_dir = os.path.join(self.module_dir, 'temp_update')
+        self._working_dir = os.path.join(self.module_dir, 'temp')
         self._download_dir = os.path.join(self._working_dir, 'down')
 
         self.current_version = current_version
@@ -126,10 +126,6 @@ class Update(_Repo):
         # Validate and organize whitelist paths
         invalid_paths = []
         sorted_whitelist = {'files': [], 'dirs': []}
-        if self.module_dir not in self.whitelist:  # Add module directory to whitelist
-            self.whitelist.append(self.module_dir)
-        if install_path not in self.whitelist:  # Add install directory to whitelist
-            self.whitelist.append(install_path)
         for path in self.whitelist:
             if not os.path.exists(path):
                 invalid_paths.append(path)
@@ -150,7 +146,8 @@ class Update(_Repo):
         self.download(path=os.path.join(self._download_dir, 'data.zip'), tag=self.get_versions()[-1])
 
         # Create environment file
-        data = {'working_directory': self._working_dir,
+        data = {'module_directory': self.module_dir,
+                'working_directory': self._working_dir,
                 'install_path': install_path,
                 'startup_path': startup_path,
                 'whitelist': sorted_whitelist

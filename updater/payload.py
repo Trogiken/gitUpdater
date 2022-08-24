@@ -1,6 +1,6 @@
 from time import sleep
-# import shutil
 import pickle
+import stat
 import os
 
 
@@ -10,7 +10,7 @@ class Payload:
         self.env = self.load_values(self.env_file)
 
     @staticmethod
-    def load_values(path):
+    def load_values(path: str):
         """Read and remove environment file"""
         if os.path.exists(path):
             with open(path, 'rb') as file:
@@ -18,28 +18,53 @@ class Payload:
             os.remove(path)
             return data
 
+    @staticmethod
+    def reset_perms(path: str):
+        """Give read, write and execute perms to every file and directory in and including 'path'"""
+        for root, dirs, filenames in os.walk(path):
+            os.chmod(root, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+            for filename in filenames:
+                os.chmod(os.path.join(root, filename), stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
+    @staticmethod
+    def set_whitelist(files: list, dirs: list):
+        """Set read-only perms to whitelisted dirs and files"""
+        if dirs:
+            for directory in dirs:
+                for root, dirs, filenames in os.walk(directory):
+                    os.chmod(root, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+                    for filename in filenames:
+                        os.chmod(os.path.join(root, filename), stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+        if files:
+            for file in files:
+                os.chmod(file, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+
     def main(self):
-        print('*' * 20)
-        print(f"Working Directory: {self.env['working_directory']}")
-        print(f"Install: {self.env['install_path']}")
-        print(f"Startup: {self.env['startup_path']}")
-        print(f"Whitelist Files: {self.env['whitelist']['files']}")
-        print(f"Whitelist Dirs: {self.env['whitelist']['dirs']}")
-        print('*' * 20)
-        print()
+        self.reset_perms(self.env['install_path'])
+        self.set_whitelist(self.env['whitelist']['files'], self.env['whitelist']['dirs'])
 
-        del_files = []
-        del_dirs = []
-        for current, dirs, files in os.walk(self.env['install_path']):
-            if current not in self.env['whitelist']['dirs']:
-                del_dirs.append(current)
-                for f in files:
-                    if os.path.join(current, f) not in self.env['whitelist']['files']:
-                        del_files.append(os.path.join(current, f))
+        # Clear install directory of non-whitelisted files and dirs
+        for root, dirs, files in os.walk(self.env['install_path'], topdown=False):
+            if not root.startswith(os.path.abspath(self.env['module_directory'])+os.sep) and root != self.env['module_directory']:  # if current dir is of module
+                for file in files:  # delete files
+                    try:
+                        os.remove(os.path.join(root, file))
+                        files.remove(file)
+                    except PermissionError:
+                        continue
+                if not files:
+                    for path in dirs:  # delete empty dirs
+                        if path != self.env['install_path']:  # dont delete install path
+                            try:
+                                os.removedirs(os.path.join(root, path))
+                                dirs.remove(path)
+                            except PermissionError:
+                                continue
+            else:
+                dirs[:] = []
+                files[:] = []
 
-        print(del_files)
-        print(del_dirs)
-
+        self.reset_perms(self.env['install_path'])
         # upack zip
         # move contents of folder to install location
         # start the startup file
