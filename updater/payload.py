@@ -66,7 +66,7 @@ class Payload:
 
         self.reset_perms(self.env['install_path'])
         # upack zip
-        # move contents of folder to install location
+        # move contents of folder to install location, if exists error, then skip
         # start the startup file
 
 
