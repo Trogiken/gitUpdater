@@ -15,20 +15,33 @@ Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' s
 `pip install --upgrade gitUpdater`
 
 ## Features
+
+#### Importing
 ```
 import updater
 
 update = updater()  # 'current_version', 'username', 'repository', if the repo is private; 'token'
+```
 
-# Main Functions
+#### Main Functions
+```
 update.check()
 update.run(install_path, startup_path, force)  # 'force' is optional
+```
 
-# Subclass Functions
+#### Subclass Functions
+```
 update.fetch(url)
 update.get_tags()
 update.get_versions()
 update.download(path, tag)
+```
+
+#### You can also access class attributes
+```
+update.whitelist.append("absolute_path")
+update.module_dir
+update.current_version
 ```
 
 ## Example
