@@ -14,7 +14,7 @@ Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' s
 ### Update
 `pip install --upgrade gitUpdater`
 
-## Functions
+## Features
 ```
 import updater
 
@@ -22,11 +22,23 @@ update = updater()  # 'current_version', 'username', 'repository', if the repo i
 
 # Main Functions
 update.check()
-update.run()
+update.run(install_path, startup_path, force)  # 'force' is optional
 
 # Subclass Functions
 update.fetch(url)
 update.get_tags()
 update.get_versions()
 update.download(path, tag)
+```
+
+## Example
+
+```
+import updater
+
+update = updater(current_version='1.0-beta.1', username='Trogiken', 'DeMod-GTAV')
+
+if update.check()['update']:
+  print("Update is available. Installing Latest")
+  update.run()
 ```
