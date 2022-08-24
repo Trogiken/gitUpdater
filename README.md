@@ -37,11 +37,10 @@ update.get_versions()
 update.download(path, tag)
 ```
 
-#### You can also access class attributes
+#### You can also whitelist files and directories
 ```
 update.whitelist.append("absolute_path")
-update.module_dir
-update.current_version
+update.whitelist.remove("absolute_path")
 ```
 
 ## Example
