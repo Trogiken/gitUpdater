@@ -5,13 +5,13 @@ Utilize github tags to update client programs
 
 Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' scope
 
-### Install
+#### Install
 `pip install git+https://github.com/Trogiken/gitUpdater.git`
 
-### Uninstall
+#### Uninstall
 `pip uninstall gitUpdater`
 
-### Update
+#### Update
 `pip install --upgrade gitUpdater`
 
 ## Features
