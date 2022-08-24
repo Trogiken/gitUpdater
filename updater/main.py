@@ -145,13 +145,16 @@ class Update(_Repo):
         os.mkdir(self._download_dir)
 
         # Download the latest zip tag
-        self.download(path=os.path.join(self._download_dir, 'data.zip'), tag=self.get_versions()[-1])
+        download_path = os.path.join(self._download_dir, 'data.zip')
+        self.download(path=download_path, tag=self.get_versions()[-1])
 
         # Create environment file
         data = {'module_directory': self._module_dir,
                 'working_directory': self._working_dir,
+                'download_directory': self._download_dir,
                 'install_path': install_path,
                 'startup_path': startup_path,
+                'download_path': download_path,
                 'whitelist': sorted_whitelist
                 }
         with open(os.path.join(self._module_dir, 'env.pkl'), 'wb') as file:
