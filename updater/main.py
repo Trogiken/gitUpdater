@@ -86,11 +86,11 @@ class Update(_Repo):
     """
     def __init__(self, current_version: str, username: str, repository: str, token: str = None):
         super().__init__(username, repository, token)
-        self.module_dir = os.path.dirname(__file__)
-        self._working_dir = os.path.join(self.module_dir, 'temp')
+        self._module_dir = os.path.dirname(__file__)
+        self._working_dir = os.path.join(self._module_dir, 'temp')
         self._download_dir = os.path.join(self._working_dir, 'down')
 
-        self.current_version = current_version
+        self._current_version = current_version
         self.whitelist = []
 
     def check(self) -> dict:
@@ -98,7 +98,7 @@ class Update(_Repo):
         versions = self.get_versions()
         latest = versions[-1]
 
-        if version.parse(latest) > version.parse(self.current_version):
+        if version.parse(latest) > version.parse(self._current_version):
             status = True
         else:
             status = False
@@ -146,17 +146,17 @@ class Update(_Repo):
         self.download(path=os.path.join(self._download_dir, 'data.zip'), tag=self.get_versions()[-1])
 
         # Create environment file
-        data = {'module_directory': self.module_dir,
+        data = {'module_directory': self._module_dir,
                 'working_directory': self._working_dir,
                 'install_path': install_path,
                 'startup_path': startup_path,
                 'whitelist': sorted_whitelist
                 }
-        with open(os.path.join(self.module_dir, 'env.pkl'), 'wb') as file:
+        with open(os.path.join(self._module_dir, 'env.pkl'), 'wb') as file:
             pickle.dump(data, file)
 
         # Start payload
-        os.system(f"python {os.path.join(self.module_dir, 'payload.py')}")
+        os.system(f"python {os.path.join(self._module_dir, 'payload.py')}")
 
         # Close program with exit code 0
         exit(0)
