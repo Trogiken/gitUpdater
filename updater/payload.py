@@ -69,23 +69,20 @@ class Payload:
         self.reset_perms(self.env['install_path'])
 
         # Unpack download
-        with ZipFile(self.env['download_path'], 'r') as file:
+        with ZipFile(self.env['zip_path'], 'r') as file:
             file.extractall(self.env['download_directory'])
 
         # Move files to install location
         download_files = os.listdir(self.env['download_directory'])
-        print(download_files)
         data_folder = ''
         for file in download_files:
             if '.' not in file:
-                print(os.path.join(self.env['download_directory'], file))
                 data_folder = os.path.join(self.env['download_directory'], file)
                 break
         if not data_folder:
             raise FileNotFoundError("Unable to located unzipped folder")
         file_names = os.listdir(data_folder)
         for file_name in file_names:
-            print(file_name)
             try:
                 shutil.move(os.path.join(data_folder, file_name), self.env['install_path'])
             except shutil.Error:  # already exists, keep original
@@ -96,7 +93,10 @@ class Payload:
         os.remove(self.env_file)
 
         # start file
-        os.system(f"python {self.env['startup_path']}")
+        if os.path.exists(self.env['startup_path']):
+            os.system(f"python {self.env['startup_path']}")
+        else:
+            raise FileNotFoundError("Startup file cannot be found")
 
 
 if __name__ == '__main__':
