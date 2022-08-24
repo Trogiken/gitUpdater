@@ -127,7 +127,7 @@ class Update(_Repo):
         sorted_whitelist = {'files': [], 'dirs': []}
         for path in self.whitelist:
             if not os.path.exists(path):
-                raise FileNotFoundError(f"{path} does not not exist")
+                raise FileNotFoundError(f"'{path}' does not not exist")
             if install_path == path:
                 raise ValueError(f"Cannot whitelist the install path: '{path}'")
             if not path.startswith(os.path.abspath(install_path)+os.sep):  # if not a sub path of install_path
