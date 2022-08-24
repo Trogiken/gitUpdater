@@ -1,5 +1,5 @@
 # gitUpdater
-Utilize github to update client programs
+Utilize github tags to update client programs
 
 ## Setup
 
