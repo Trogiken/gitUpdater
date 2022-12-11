@@ -1,6 +1,8 @@
 # gitUpdater
 Utilize github tags to update client programs
 
+**Not fully functional**
+
 ## Setup
 
 Generate a token [here](https://github.com/settings/tokens). Enable the 'repo' scope
